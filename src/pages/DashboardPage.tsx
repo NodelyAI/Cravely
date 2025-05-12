@@ -66,7 +66,7 @@ export default function DashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       )
-    },
+    }
   ];
 
   const actionCards = [
@@ -117,7 +117,7 @@ export default function DashboardPage() {
     { id: 3, action: 'Order completed', time: '32 minutes ago', table: 'Table 7' },
     { id: 4, action: 'Menu item updated', time: '1 hour ago', item: 'Margherita Pizza' },
     { id: 5, action: 'New reservation', time: '2 hours ago', table: 'Table 2' },
-    { id: 6, action: 'Inventory updated', time: '3 hours ago', item: 'Beverages' },
+    { id: 6, action: 'Inventory updated', time: '3 hours ago', item: 'Beverages' }
   ];
 
   const container = {
@@ -138,21 +138,25 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
       {/* Mobile Menu */}
-      <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      {isMobile && <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
       
       {/* Main Content */}
       <main className="transition-all duration-300">
         {/* Header for both mobile and desktop */}
         <div className="bg-white border-b border-gray-200 px-4 h-16 flex items-center justify-between sticky top-0 z-10">
-          <button 
-            onClick={() => setMobileMenuOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100 md:hidden"
-            aria-label="Open menu"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          {isMobile ? (
+            <button 
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 rounded-lg hover:bg-gray-100"
+              aria-label="Open menu"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          ) : (
+            <div className="w-10"></div> /* Spacer for non-mobile */
+          )}
           <Link to="/dashboard" className="flex items-center gap-2">
             <span className="inline-block bg-gradient-to-r from-[#FF7A00] to-[#FF7A00]/80 text-white rounded px-2 py-1">C</span>
             <span className="font-bold text-lg">Cravely</span>
