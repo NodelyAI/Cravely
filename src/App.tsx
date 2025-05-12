@@ -8,7 +8,7 @@ import LandingPage from './pages/LandingPage';
 import ProfilePage from './pages/ProfilePage';
 import Navbar from './components/Navbar';
 import { useAuth } from './hooks/useAuth';
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import './App.css'
 
 function MainLayout() {

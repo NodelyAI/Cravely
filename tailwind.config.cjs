@@ -4,10 +4,11 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      colors: {
+    extend: {      colors: {
         primary: {
-          DEFAULT: '#FB923C', // Warm Orange
+          DEFAULT: '#FF7A00', // Brand Orange
+          hover: '#E86D00', // Darker Orange for hover states
+          light: '#FFA149', // Lighter Orange
         },
         background: {
           DEFAULT: '#F9FAFB', // Light Neutral Gray
@@ -17,7 +18,7 @@ module.exports = {
           muted: '#6B7280', // Cool Gray
         },
         accent: {
-          DEFAULT: '#14B8A6', // Soft Teal
+          DEFAULT: '#FF7A00', // Same as primary for consistency
         },
         error: {
           DEFAULT: '#F43F5E', // Rose Red

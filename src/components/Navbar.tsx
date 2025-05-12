@@ -49,11 +49,25 @@ export default function Navbar() {
   return (
     <nav className={`${scrolled ? 'shadow-md' : ''} transition-all duration-300 sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-primary/10`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2 text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
-            <span className="inline-block bg-gradient-to-r from-primary to-primary/80 text-white rounded px-2 py-1 mr-1">C</span>
-            Cravely
+        <div className="flex items-center justify-between h-16">          {/* Logo */}
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <div className="relative">
+              {/* Using the navbar logo from public folder */}
+              <img 
+                src="/navbar_128.png" 
+                alt="Cravely Logo" 
+                className="h-12 w-auto drop-shadow-sm hover:brightness-105 transition-all duration-300" 
+                onError={(e) => {
+                  console.error('Logo failed to load');
+                  e.currentTarget.style.display = 'none';
+                  // Show fallback text logo if image fails to load
+                  const fallbackLogo = document.createElement('span');
+                  fallbackLogo.className = 'text-2xl font-extrabold text-primary';
+                  fallbackLogo.textContent = 'Cravely';
+                  e.currentTarget.parentElement?.appendChild(fallbackLogo);
+                }}
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
@@ -72,13 +86,12 @@ export default function Navbar() {
                   {link.label}
                 </Link>
               ))}
-            </div>
-
-            {/* Profile Menu */}
+            </div>            {/* Profile Menu */}
             <div className="relative ml-4">
               <button 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center justify-center rounded-full w-10 h-10 bg-accent/10 text-accent hover:bg-accent/20 transition-colors"
+                className="flex items-center justify-center rounded-full w-10 h-10 bg-primary/10 text-primary hover:bg-primary/20 transition-colors duration-300 border border-primary/20 shadow-sm"
+                aria-label="Open user menu"
               >
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
               </button>
@@ -90,16 +103,16 @@ export default function Navbar() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10 border border-gray-200"
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-1 z-10 border border-gray-200"
                   >
-                    <div className="px-4 py-2 border-b border-gray-100">
+                    <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-primary/5 to-orange-50">
                       <p className="text-sm font-medium text-text-primary">Signed in as</p>
                       <p className="text-sm text-text-muted truncate">{user?.email}</p>
                     </div>
-                    <Link to="/profile" className="block px-4 py-2 text-sm text-text-primary hover:bg-accent/5">Profile Settings</Link>
+                    <Link to="/profile" className="block px-4 py-2 text-sm text-text-primary hover:bg-accent/5 transition-colors duration-200">Profile Settings</Link>
                     <button 
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm text-error hover:bg-error/5"
+                      className="block w-full text-left px-4 py-2 text-sm text-error hover:bg-error/5 transition-colors duration-200"
                     >
                       Sign Out
                     </button>
@@ -107,13 +120,12 @@ export default function Navbar() {
                 )}
               </AnimatePresence>
             </div>
-          </div>
-
-          {/* Mobile menu button */}
+          </div>          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button
-              className="p-2 rounded-lg hover:bg-primary/5 focus:outline-none"
+              className="p-2 rounded-lg hover:bg-primary/10 focus:outline-none transition-colors duration-200"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               <span className="sr-only">{mobileOpen ? 'Close menu' : 'Open menu'}</span>
               {mobileOpen ? (
