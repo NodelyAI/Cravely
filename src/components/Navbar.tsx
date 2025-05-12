@@ -4,10 +4,10 @@ import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
-  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { to: '/menu', label: 'Menu', icon: '🍽️' },
-  { to: '/orders', label: 'Orders', icon: '📋' },
-  { to: '/chat', label: 'AI Chat', icon: '🤖' },
+  { to: '/dashboard', label: 'Dashboard' },
+  { to: '/menu', label: 'Menu' },
+  { to: '/orders', label: 'Orders' },
+  { to: '/chat', label: 'AI Chat' },
 ];
 
 export default function Navbar() {
@@ -52,7 +52,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-2 text-xl sm:text-2xl font-extrabold text-primary tracking-tight">
-            <span className="inline-block bg-gradient-to-r from-primary to-primary/80 text-white rounded px-2 py-1 mr-1">🍽️</span>
+            <span className="inline-block bg-gradient-to-r from-primary to-primary/80 text-white rounded px-2 py-1 mr-1">C</span>
             Cravely
           </Link>
 
@@ -69,7 +69,7 @@ export default function Navbar() {
                       : 'text-text-primary hover:bg-primary/5'
                   }`}
                 >
-                  <span className="hidden lg:inline mr-1">{link.icon}</span> {link.label}
+                  {link.label}
                 </Link>
               ))}
             </div>
@@ -150,7 +150,7 @@ export default function Navbar() {
                       : 'text-text-primary hover:bg-primary/5'
                   }`}
                 >
-                  {link.icon} {link.label}
+                  {link.label}
                 </Link>
               ))}
               <div className="pt-4 border-t border-gray-200 mt-4">
