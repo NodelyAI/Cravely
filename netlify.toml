@@ -1,0 +1,24 @@
+# Netlify configuration for Cravely React application
+# This file handles client-side routing and backend redirects
+
+# Build settings
+[build]
+  # Directory to publish
+  publish = "dist"
+  # Build command (modify as needed)
+  command = "npm run build"
+
+# Handle client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers to enable CORS
+[[headers]]
+  # Define which paths this specific [[headers]] block will cover
+  for = "/*"
+    [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Origin, X-Requested-With, Content-Type, Accept, Authorization"

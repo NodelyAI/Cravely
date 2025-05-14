@@ -43,11 +43,11 @@ export const generateTableQRCodesHttpMock = functions.https.onRequest((request, 
         // Add to results
         results[tableId] = qrUrl;
       }
-      
-      // Send success response
+        // Send success response
       response.status(200).send({
         success: true,
-        tables: results
+        tables: results,
+        message: `Successfully generated ${tableLabels.length} QR codes!`
       });
     } catch (error) {
       console.error('Error generating QR codes:', error);

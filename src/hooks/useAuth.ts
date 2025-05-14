@@ -11,13 +11,29 @@ import { auth } from '../services/firebase';
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    try {
+      const unsubscribe = onAuthStateChanged(auth, 
+        (currentUser) => {
+          setUser(currentUser);
+          setLoading(false);
+          setError(null);
+        }, 
+        (authError) => {
+          console.error('Auth state change error:', authError);
+          setError(authError.message);
+          setLoading(false);
+        }
+      );
+      return unsubscribe;
+    } catch (initError) {
+      console.error('Auth initialization error:', initError);
+      setError(initError instanceof Error ? initError.message : 'Failed to initialize authentication');
       setLoading(false);
-    });
-    return unsubscribe;
+      return () => {};
+    }
   }, []);
 
   const signup = (email: string, password: string) => {
@@ -32,5 +48,5 @@ export function useAuth() {
     return signOut(auth);
   };
 
-  return { user, loading, signup, login, logout };
+  return { user, loading, error, signup, login, logout };
 } 

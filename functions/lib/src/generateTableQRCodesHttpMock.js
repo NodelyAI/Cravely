@@ -77,7 +77,8 @@ exports.generateTableQRCodesHttpMock = functions.https.onRequest((request, respo
             // Send success response
             response.status(200).send({
                 success: true,
-                tables: results
+                tables: results,
+                message: `Successfully generated ${tableLabels.length} QR codes!`
             });
         }
         catch (error) {

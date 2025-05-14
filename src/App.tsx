@@ -40,7 +40,7 @@ function PageLoader() {
 }
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, error } = useAuth();
   
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
@@ -50,6 +50,15 @@ function App() {
       </div>
       <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">Cravely</h1>
       <p className="text-text-muted text-center max-w-xs">Transforming restaurant operations and enhancing customer experiences</p>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+      <div className="text-error mb-6">⚠️</div>
+      <h1 className="text-2xl sm:text-3xl font-bold text-primary mb-2">Authentication Error</h1>
+      <p className="text-text-muted text-center max-w-md mb-4">{error}</p>
+      <p className="text-text-muted text-center max-w-md">Please check your Firebase configuration or network connection.</p>
     </div>
   );
 

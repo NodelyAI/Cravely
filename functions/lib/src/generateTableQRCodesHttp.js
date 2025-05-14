@@ -49,12 +49,15 @@ const cors_1 = __importDefault(require("cors"));
 const corsMiddleware = (0, cors_1.default)({
     origin: [
         'https://cravely.netlify.app',
+        'https://www.cravely.netlify.app',
         'https://cravely.app',
+        'https://www.cravely.app',
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:5175',
         'http://localhost:5176',
-        'http://localhost:5177'
+        'http://localhost:5177',
+        '*' // Allow any origin temporarily for testing
     ]
 });
 /**

@@ -120,113 +120,48 @@ export default function TablesPage() {
         setError('Please enter at least one valid table label');
         setIsGenerating(false);
         return;
-      }
-        try {        // Determine if we're in development mode
-        const isDevelopment = window.location.hostname === 'localhost';
+      }        try {
         let result;
         
-        if (isDevelopment) {
-          // Use the HTTP endpoint in development (handles CORS explicitly)
-          const response = await fetch('http://localhost:5002/cravely-f2914/us-central1/generateTableQRCodesHttpMock', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              restaurantId,
-              tableLabels
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-          }          result = { data: await response.json() };
-          
-          // In development with mock function, we need to manually update the tables state
-          // since the mock doesn't create actual Firestore entries
-          const mockData = result.data as { success: boolean; tables: Record<string, string> };
-          
-          if (mockData.success) {
-            // Create "fake" table entries in our local state
-            const newTables: Table[] = [];
-            
-            for (const [tableId, qrUrl] of Object.entries(mockData.tables)) {
-              newTables.push({
-                id: tableId,
-                label: tableLabels.find(label => label) || "Table", // Use the first label or default
-                qrUrl: qrUrl,
-                createdAt: new Date().toISOString()
-              });
-            }
-            
-            // Update the tables state with both existing and new tables
-            setTables([...tables, ...newTables]);
-          }} else {
-          // Use the production HTTP function
-          const response = await fetch('https://us-central1-cravely-f2914.cloudfunctions.net/generateTableQRCodesHttp', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              restaurantId,
-              tableLabels
-            })
-          });
-          
-          if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
-          }
-          
-          result = { data: await response.json() };
+        // Use the production HTTP function for all environments
+        const response = await fetch('https://us-central1-cravely-f2914.cloudfunctions.net/generateTableQRCodesHttp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            restaurantId,
+            tableLabels
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
         }
         
-        // Handle response
+        result = { data: await response.json() };
+          // Handle response
         const data = result.data as { success: boolean; tables: Record<string, string> };
-          if (data.success) {
+        if (data.success) {
           setSuccessMessage(`Successfully generated ${Object.keys(data.tables).length} QR codes!`);
           setNewTableLabels('');
           
-          if (isDevelopment) {
-            // When using the mock function, manually update the tables list
-            // since we're not actually adding entries to Firestore
-            const now = new Date();
-            const newTables: Table[] = [...tables];
-            
-            // Add new tables from the generated QR codes
-            Object.entries(data.tables).forEach(([tableId, qrUrl]) => {
-              // Find the corresponding label from tableLabels array
-              const index = newTables.length % tableLabels.length;
-              const label = tableLabels[index];
-              
-              newTables.push({
-                id: tableId,
-                label: label,
-                qrUrl: qrUrl,
-                createdAt: now
-              });
+          // Refresh from Firestore since our cloud function adds data there
+          const tablesRef = collection(db, 'tables');
+          const q = query(tablesRef, where('restaurantId', '==', restaurantId));
+          const querySnapshot = await getDocs(q);
+          
+          const tableData: Table[] = [];
+          querySnapshot.forEach((doc) => {
+            tableData.push({
+              id: doc.id,
+              label: doc.data().label,
+              qrUrl: doc.data().qrUrl,
+              createdAt: doc.data().createdAt
             });
-            
-            setTables(newTables);
-          } else {
-            // In production, refresh from Firestore
-            // Refresh tables list
-            const tablesRef = collection(db, 'tables');
-            const q = query(tablesRef, where('restaurantId', '==', restaurantId));
-            const querySnapshot = await getDocs(q);
-            
-            const tableData: Table[] = [];
-            querySnapshot.forEach((doc) => {
-              tableData.push({
-                id: doc.id,
-                label: doc.data().label,
-                qrUrl: doc.data().qrUrl,
-                createdAt: doc.data().createdAt
-              });
-            });
-            
-            setTables(tableData);
-          }
+          });
+          
+          setTables(tableData);
         } else {
           setError('Failed to generate QR codes');
         }
