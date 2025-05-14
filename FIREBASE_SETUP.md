@@ -234,3 +234,17 @@ firebase emulators:start
 ```
 
 This will start local emulators for Firestore, Functions, Auth, and Storage that you can use during development.
+
+### Setting Up Service Account for Local Development
+
+For some Firebase operations and scripts, you'll need a service account key:
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project
+3. Navigate to IAM & Admin > Service Accounts
+4. Find the Firebase Admin SDK service account (or create one)
+5. Click on the service account > Keys > Add Key > Create new key
+6. Select JSON and click Create
+7. Save this file as `scripts/service-account-key.json`
+
+⚠️ **IMPORTANT: Never commit this file to version control!** The repository is configured to ignore this file, as it contains sensitive credentials.

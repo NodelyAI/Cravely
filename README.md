@@ -163,7 +163,13 @@ cp .env.example .env.local
 ```
 Edit `.env.local` with your Firebase configuration.
 
-5. Start the development server
+5. Set up service account key
+```bash
+cp scripts/service-account-key.example.json scripts/service-account-key.json
+```
+Edit `scripts/service-account-key.json` with your Google Cloud service account credentials. This file is in `.gitignore` to prevent accidental commits of sensitive data.
+
+6. Start the development server
 ```bash
 npm run dev
 # or
