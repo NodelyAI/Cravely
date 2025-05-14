@@ -25,19 +25,13 @@ export default function LandingPage() {
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-24">            <div className="flex items-center gap-3 relative z-10">              <img 
-                src={"/assets/logo/logo_512.png"} 
+                src="/logo_512.png" 
                 alt="Cravely Logo" 
                 className="h-16 w-auto drop-shadow-lg hover:brightness-105 transition-all duration-300" 
                 loading="eager"
                 onError={(e) => {
                   console.error('Logo failed to load');
-                  // Try alternative paths
-                  if (e.currentTarget.src.includes('/assets/logo/logo_512.png')) {
-                    e.currentTarget.src = "/logo_512.png";
-                    return;
-                  }
-                  
-                  // If all fallbacks fail, show text logo
+                  // If image fails, show text logo
                   e.currentTarget.style.display = 'none';
                   const container = e.currentTarget.parentElement;
                   if (container) {

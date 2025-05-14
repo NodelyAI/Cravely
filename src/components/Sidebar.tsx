@@ -3,18 +3,18 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
 
 interface SidebarProps {
-  expanded: boolean;
-  toggleSidebar: () => void;
+  expanded?: boolean;
+  toggleSidebar?: () => void;
 }
 
-export default function Sidebar({ expanded, toggleSidebar }: SidebarProps) {
+export default function Sidebar({ expanded = true, toggleSidebar = () => {} }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
-  
-  const navItems = [
+    const navItems = [
     { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
     { to: '/orders', icon: '📋', label: 'Orders' },
     { to: '/menu', icon: '🍽️', label: 'Menu' },
+    { to: '/tables', icon: '🪑', label: 'Tables' },
     { to: '/chat', icon: '💬', label: 'AI Chat' },
     { to: '/profile', icon: '👤', label: 'Profile' },
   ];

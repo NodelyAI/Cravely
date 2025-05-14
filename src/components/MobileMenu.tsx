@@ -10,11 +10,11 @@ interface MobileMenuProps {
 export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
-  
-  const navItems = [
+    const navItems = [
     { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
     { to: '/orders', icon: '📋', label: 'Orders' },
     { to: '/menu', icon: '🍽️', label: 'Menu' },
+    { to: '/tables', icon: '🪑', label: 'Tables' },
     { to: '/chat', icon: '💬', label: 'AI Chat' },
     { to: '/profile', icon: '👤', label: 'Profile' },
   ];

@@ -1,17 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { ref, getDownloadURL } from 'firebase/storage';
+import { db, storage } from '../services/firebase';
 
 type MenuItem = {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number;
   category: string;
   image: string;
+  imageUrl?: string; // URL to display image
   available: boolean;
-  popular: boolean;
+  popular?: boolean;
   allergens?: string[];
   prepTime?: number; // in minutes
+  restaurantId: string;
 };
 
 type Category = {
@@ -21,104 +26,59 @@ type Category = {
 };
 
 export default function MenuPage() {
-  // Example menu items with more detailed information
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([
-    {
-      id: 1,
-      name: 'Margherita Pizza',
-      description: 'Classic pizza with tomato sauce, mozzarella, fresh basil, salt, and olive oil.',
-      price: 12.99,
-      category: 'Pizza',
-      image: 'https://via.placeholder.com/150?text=Pizza',
-      available: true,
-      popular: true,
-      allergens: ['Gluten', 'Dairy'],
-      prepTime: 20
-    },
-    {
-      id: 2,
-      name: 'Caesar Salad',
-      description: 'Fresh romaine lettuce with Caesar dressing, croutons, and parmesan cheese.',
-      price: 8.99,
-      category: 'Salad',
-      image: 'https://via.placeholder.com/150?text=Salad',
-      available: true,
-      popular: false,
-      allergens: ['Gluten', 'Dairy', 'Eggs'],
-      prepTime: 10
-    },
-    {
-      id: 3,
-      name: 'Spaghetti Carbonara',
-      description: 'Traditional Italian pasta dish with eggs, cheese, pancetta, and black pepper.',
-      price: 14.99,
-      category: 'Pasta',
-      image: 'https://via.placeholder.com/150?text=Pasta',
-      available: true,
-      popular: true,
-      allergens: ['Gluten', 'Dairy', 'Eggs'],
-      prepTime: 25
-    },
-    {
-      id: 4,
-      name: 'Chicken Alfredo',
-      description: 'Fettuccine pasta with rich Alfredo sauce and grilled chicken breast.',
-      price: 16.99,
-      category: 'Pasta',
-      image: 'https://via.placeholder.com/150?text=ChickenAlfredo',
-      available: true,
-      popular: false,
-      allergens: ['Gluten', 'Dairy'],
-      prepTime: 30
-    },
-    {
-      id: 5,
-      name: 'Vegetable Stir Fry',
-      description: 'Mixed vegetables stir-fried in a savory sauce with steamed rice.',
-      price: 11.99,
-      category: 'Main Course',
-      image: 'https://via.placeholder.com/150?text=StirFry',
-      available: true,
-      popular: false,
-      allergens: ['Soy'],
-      prepTime: 15
-    },
-    {
-      id: 6,
-      name: 'Chocolate Cake',
-      description: 'Rich chocolate layer cake with chocolate ganache frosting.',
-      price: 7.99,
-      category: 'Dessert',
-      image: 'https://via.placeholder.com/150?text=Cake',
-      available: true,
-      popular: true,
-      allergens: ['Gluten', 'Dairy', 'Eggs'],
-      prepTime: 0
-    },
-    {
-      id: 7,
-      name: 'Fresh Lemonade',
-      description: 'Freshly squeezed lemons with sugar and water.',
-      price: 3.99,
-      category: 'Beverage',
-      image: 'https://via.placeholder.com/150?text=Lemonade',
-      available: true,
-      popular: false,
-      prepTime: 5
-    },
-    {
-      id: 8,
-      name: 'Mushroom Risotto',
-      description: 'Creamy Italian rice dish with mushrooms, white wine, and parmesan.',
-      price: 15.99,
-      category: 'Main Course',
-      image: 'https://via.placeholder.com/150?text=Risotto',
-      available: false,
-      popular: false,
-      allergens: ['Dairy'],
-      prepTime: 35
-    },
-  ]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Fetch menu items from Firestore
+  useEffect(() => {
+    async function fetchMenuItems() {
+      try {
+        setLoading(true);
+        const menuItemsCollection = collection(db, 'menuItems');
+        const menuItemsQuery = query(menuItemsCollection, orderBy('category'));
+        const querySnapshot = await getDocs(menuItemsQuery);
+        
+        const items: MenuItem[] = [];
+        
+        for (const doc of querySnapshot.docs) {
+          const data = doc.data() as Omit<MenuItem, 'id'>;
+          const item: MenuItem = {
+            id: doc.id,
+            ...data,
+            popular: data.popular || false
+          };
+          
+          // If the item has an image path, get the download URL
+          if (item.image && item.image.startsWith('menu-items/')) {
+            try {
+              const imageRef = ref(storage, item.image);
+              const downloadURL = await getDownloadURL(imageRef);
+              item.imageUrl = downloadURL;
+            } catch (imageError) {
+              console.error(`Error loading image for ${item.name}:`, imageError);
+              // Use a placeholder if image loading fails
+              item.imageUrl = `https://via.placeholder.com/150?text=${encodeURIComponent(item.name)}`;
+            }
+          } else if (!item.imageUrl) {
+            // If no image or imageUrl provided, use a placeholder
+            item.imageUrl = `https://via.placeholder.com/150?text=${encodeURIComponent(item.name)}`;
+          }
+          
+          items.push(item);
+        }
+        
+        setMenuItems(items);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching menu items:', err);
+        setError('Failed to load menu items. Please try again later.');
+        setLoading(false);
+      }
+    }
+    
+    fetchMenuItems();
+  }, []);
 
   // Derived categories from menu items
   const categories: Category[] = [
@@ -144,9 +104,8 @@ export default function MenuPage() {
      item.description.toLowerCase().includes(searchQuery.toLowerCase())) &&
     (!showAvailableOnly || item.available)
   );
-
   // Toggle item availability
-  const toggleAvailability = (itemId: number) => {
+  const toggleAvailability = (itemId: string) => {
     setMenuItems(prevItems => 
       prevItems.map(item => 
         item.id === itemId ? { ...item, available: !item.available } : item
@@ -155,7 +114,7 @@ export default function MenuPage() {
   };
 
   // Delete a menu item
-  const deleteItem = (itemId: number) => {
+  const deleteItem = (itemId: string) => {
     if (window.confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
       setMenuItems(prevItems => prevItems.filter(item => item.id !== itemId));
     }
@@ -258,8 +217,22 @@ export default function MenuPage() {
         </div>
       </div>
       
+      {/* Loading state */}
+      {loading && (
+        <div className="flex justify-center items-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      )}
+      
+      {/* Error state */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+      
       {/* Menu Items Grid */}
-      {filteredItems.length > 0 ? (
+      {!loading && !error && filteredItems.length > 0 ? (
         <motion.div
           variants={container}
           initial="hidden"
@@ -273,12 +246,15 @@ export default function MenuPage() {
               className={`bg-white rounded-lg shadow-sm overflow-hidden border ${
                 menuItem.available ? 'border-gray-200' : 'border-red-200'
               }`}
-            >
-              <div className="relative h-40 bg-gray-200">
+            >              <div className="relative h-40 bg-gray-200">
                 <img
-                  src={menuItem.image}
+                  src={menuItem.imageUrl || menuItem.image}
                   alt={menuItem.name}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = `https://via.placeholder.com/150?text=${encodeURIComponent(menuItem.name)}`;
+                  }}
                 />
                 {menuItem.popular && (
                   <div className="absolute top-2 left-2 bg-yellow-400 text-white px-2 py-1 rounded-full text-xs font-bold">

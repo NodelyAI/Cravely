@@ -1,0 +1,32 @@
+// Mock AIChat component for tests
+// Using React but not referencing it directly in JSX to fix TypeScript warning
+import React from 'react';
+
+interface AIChatProps {
+  context?: any;
+}
+
+// Use the context parameter to avoid "declared but never read" warning
+export function AIChat({ context }: AIChatProps) {
+  // Unused variables are ok in test mocks, disable eslint warning
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _ = context;
+  return (
+    <div data-testid="ai-chat-mock">
+      <h2>AI Assistant</h2>
+      <div className="chat-container">
+        <div className="messages">
+          <div className="message">How can I help you with your order?</div>
+        </div>
+        <form>
+          <input
+            type="text"
+            placeholder="Ask about the menu..."
+            data-testid="chat-input"
+          />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </div>
+  );
+}

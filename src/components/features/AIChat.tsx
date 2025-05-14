@@ -1,8 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../hooks/useAI';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { AIContext } from '../../services/ai';
 
-export function AIChat() {
+interface AIChatProps {
+  context?: AIContext;
+}
+
+export function AIChat({ context }: AIChatProps) {
   const [prompt, setPrompt] = useState('');
   const [responses, setResponses] = useState<Array<{ prompt: string; response: string }>>([]);
   const { generateResponse, loading, error } = useAI();
@@ -18,8 +23,8 @@ export function AIChat() {
     const currentPrompt = prompt;
     setPrompt('');
     
-    // Generate AI response
-    const result = await generateResponse(currentPrompt);
+    // Generate AI response with context
+    const result = await generateResponse(currentPrompt, context);
     
     if (result.text) {
       setResponses(prev => 

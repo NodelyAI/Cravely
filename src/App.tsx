@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import MenuPage from './pages/MenuPage';
 import OrdersPage from './pages/OrdersPage';
+import TablesPage from './pages/TablesPage';
 import LandingPage from './pages/LandingPage';
 import ProfilePage from './pages/ProfilePage';
 import Navbar from './components/Navbar';
@@ -64,6 +65,7 @@ function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/tables" element={<TablesPage />} />
           <Route path="/chat" element={<AIChatPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

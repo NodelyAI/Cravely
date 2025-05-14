@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { generateAIResponse } from '../services/ai';
-import type { AIResponse } from '../services/ai';
+import type { AIResponse, AIContext } from '../services/ai';
 
 export function useAI() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateResponse = async (prompt: string): Promise<AIResponse> => {
+  const generateResponse = async (prompt: string, context?: AIContext): Promise<AIResponse> => {
     setLoading(true);
     setError(null);
     try {
-      const response = await generateAIResponse(prompt);
+      const response = await generateAIResponse(prompt, context);
       if (response.error) {
         setError(response.error);
       }
@@ -25,4 +25,4 @@ export function useAI() {
   };
 
   return { generateResponse, loading, error };
-} 
+}

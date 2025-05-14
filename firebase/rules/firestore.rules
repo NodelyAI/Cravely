@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default: deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Restaurant data - public read, authenticated write
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+                   (request.auth.token.restaurantId == restaurantId || 
+                    request.auth.token.admin == true);
+    }
+    
+    // Tables - public read, authenticated write by restaurant staff
+    match /tables/{tableId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+                   (request.auth.token.restaurantId == resource.data.restaurantId || 
+                    request.auth.token.admin == true);
+    }
+    
+    // Menu items - public read, authenticated write by restaurant staff
+    match /menuItems/{itemId} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+                   (request.auth.token.restaurantId == resource.data.restaurantId || 
+                    request.auth.token.admin == true);
+    }
+    
+    // Orders - public create, restricted read/update
+    match /orders/{orderId} {
+      allow create: if true; // Allow guests to create orders
+      allow read: if true; // Allow guests to read their own orders
+      
+      // Allow restaurant staff to update orders
+      allow update: if request.auth != null && 
+                     request.auth.token.restaurantId == resource.data.restaurantId;
+                     
+      // Disallow delete for everyone
+      allow delete: if false;
+    }
+    
+    // Bill requests - public create, restricted read/update
+    match /billRequests/{requestId} {
+      allow create: if true; // Allow guests to create bill requests
+      
+      // Allow restaurant staff to read and update bill requests
+      allow read, update: if request.auth != null && 
+                           request.auth.token.restaurantId == resource.data.restaurantId;
+                           
+      // Disallow delete for everyone
+      allow delete: if false;
+    }
+    
+    // Staff assistance requests - public create, restricted read/update
+    match /assistanceRequests/{requestId} {
+      allow create: if true; // Allow guests to request assistance
+      
+      // Allow restaurant staff to read and update assistance requests
+      allow read, update: if request.auth != null && 
+                           request.auth.token.restaurantId == resource.data.restaurantId;
+                           
+      // Disallow delete for everyone
+      allow delete: if false;
+    }
+  }
+}

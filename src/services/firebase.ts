@@ -1,6 +1,8 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,4 +15,19 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app); 
+export const db = getFirestore(app);
+export const functions = getFunctions(app);
+export const storage = getStorage(app);
+
+// Connect to emulators in development mode
+if (window.location.hostname === 'localhost') {
+  console.log('Using Firebase emulators for local development');
+  
+  // Only connect to the Functions emulator to fix the CORS issue
+  // You can uncomment other emulators if you have them running
+  connectFunctionsEmulator(functions, 'localhost', 5002);
+  
+  // connectFirestoreEmulator(db, 'localhost', 8080);
+  // connectAuthEmulator(auth, 'http://localhost:9099');
+  // connectStorageEmulator(storage, 'localhost', 9199);
+}

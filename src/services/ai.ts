@@ -6,10 +6,46 @@ export type AIResponse = {
   error?: string;
 };
 
-export async function generateAIResponse(prompt: string): Promise<AIResponse> {
+export type AIContext = {
+  tableId?: string;
+  restaurantId?: string;
+  lastOrders?: Array<any>;
+  userPreferences?: Record<string, any>;
+};
+
+export async function generateAIResponse(prompt: string, context?: AIContext): Promise<AIResponse> {
   try {
-    const cachedResponse = checkCache(prompt);
+    // Create a cache key that includes context if available
+    const cacheKey = context ? `${prompt}-${JSON.stringify(context)}` : prompt;
+    const cachedResponse = checkCache(cacheKey);
     if (cachedResponse) return { text: cachedResponse };
+
+    // Enhance the prompt with context
+    let enhancedPrompt = prompt;
+    if (context) {
+      // Format context information for the AI
+      const contextParts = [];
+      
+      if (context.tableId) {
+        contextParts.push(`Table ID: ${context.tableId}`);
+      }
+      
+      if (context.restaurantId) {
+        contextParts.push(`Restaurant ID: ${context.restaurantId}`);
+      }
+      
+      if (context.lastOrders && context.lastOrders.length > 0) {
+        contextParts.push(`Last Orders: ${JSON.stringify(context.lastOrders)}`);
+      }
+      
+      if (context.userPreferences) {
+        contextParts.push(`User Preferences: ${JSON.stringify(context.userPreferences)}`);
+      }
+      
+      if (contextParts.length > 0) {
+        enhancedPrompt = `Context:\n${contextParts.join('\n')}\n\nUser Query: ${prompt}`;
+      }
+    }
 
     const response = await fetch(`${API_URL}?key=${API_KEY}`, {
       method: 'POST',
@@ -20,19 +56,17 @@ export async function generateAIResponse(prompt: string): Promise<AIResponse> {
         contents: [
           {
             parts: [
-              { text: prompt }
+              { text: enhancedPrompt }
             ]
           }
         ]
       }),
-    });
-
-    const data = await response.json();
+    });    const data = await response.json();
     if (!response.ok) {
       throw new Error(data.error?.message || 'Failed to generate AI response');
     }
     const generatedText = data.candidates[0].content.parts[0].text;
-    updateCache(prompt, generatedText);
+    updateCache(cacheKey, generatedText);
     return { text: generatedText };
   } catch (error) {
     return {
@@ -45,20 +79,20 @@ export async function generateAIResponse(prompt: string): Promise<AIResponse> {
 // Simple in-memory cache
 const cache: Record<string, { text: string, timestamp: number }> = {};
 
-function checkCache(prompt: string): string | null {
-  const entry = cache[prompt];
+function checkCache(key: string): string | null {
+  const entry = cache[key];
   if (!entry) return null;
   if (Date.now() - entry.timestamp > 3600000) {
-    delete cache[prompt];
+    delete cache[key];
     return null;
   }
   return entry.text;
 }
 
-function updateCache(prompt: string, text: string): void {
+function updateCache(key: string, text: string): void {
   const keys = Object.keys(cache);
   if (keys.length >= 100) {
     delete cache[keys[0]];
   }
-  cache[prompt] = { text, timestamp: Date.now() };
-} 
+  cache[key] = { text, timestamp: Date.now() };
+}
