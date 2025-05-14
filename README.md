@@ -1,4 +1,3 @@
-
 # 🍽️ Cravely
 
 [![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
@@ -61,6 +60,7 @@ Cravely transforms restaurant operations with a modern, intuitive platform desig
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - **React 18+**: Component-based UI architecture
 - **TypeScript**: Type safety and improved developer experience
 - **Vite**: Next-generation frontend tooling for faster development
@@ -72,6 +72,7 @@ Cravely transforms restaurant operations with a modern, intuitive platform desig
 - **Framer Motion**: Animation library for React
 
 ### Backend (Firebase)
+
 - **Firebase Authentication**: Multi-factor authentication with role-based access
 - **Firestore**: NoSQL database for real-time data synchronization
 - **Firebase Cloud Functions**: Serverless backend logic
@@ -81,6 +82,7 @@ Cravely transforms restaurant operations with a modern, intuitive platform desig
 - **Firebase Security Rules**: Declarative security model
 
 ### Developer Experience
+
 - **ESLint**: Linting utility for identifying problematic patterns
 - **Prettier**: Code formatter for consistent style
 - **Husky**: Git hooks for pre-commit checks
@@ -129,19 +131,21 @@ cravely/
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn or pnpm
 - Firebase account
 
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/your-organization/cravely.git
 cd cravely
 ```
 
 2. Install dependencies
+
 ```bash
 npm install
 # or
@@ -151,6 +155,7 @@ pnpm install
 ```
 
 3. Set up Firebase
+
 ```bash
 npm install -g firebase-tools
 firebase login
@@ -158,18 +163,23 @@ firebase init
 ```
 
 4. Configure environment variables
+
 ```bash
 cp .env.example .env.local
 ```
+
 Edit `.env.local` with your Firebase configuration.
 
 5. Set up service account key
+
 ```bash
 cp scripts/service-account-key.example.json scripts/service-account-key.json
 ```
+
 Edit `scripts/service-account-key.json` with your Google Cloud service account credentials. This file is in `.gitignore` to prevent accidental commits of sensitive data.
 
 6. Start the development server
+
 ```bash
 npm run dev
 # or
@@ -229,11 +239,13 @@ VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ### Firebase Deployment
 
 1. Build the project
+
 ```bash
 npm run build
 ```
 
 2. Deploy to Firebase
+
 ```bash
 firebase deploy
 ```
@@ -241,6 +253,7 @@ firebase deploy
 ### CI/CD Pipeline
 
 This project utilizes GitHub Actions for continuous integration and deployment:
+
 - Code quality checks run on every pull request
 - Automated tests run on pull requests and merges to main
 - Automatic deployment to Firebase on merges to main
@@ -268,6 +281,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support with Cravely:
+
 - Check the [documentation](https://docs.cravely.com)
 - Submit an issue on GitHub
 - Contact support at support@cravely.com
@@ -276,4 +290,4 @@ For support with Cravely:
 
 © 2025 Cravely. All rights reserved.
 
-*Transforming restaurant management and dining experiences through intelligent digital solutions.*
+_Transforming restaurant management and dining experiences through intelligent digital solutions._
