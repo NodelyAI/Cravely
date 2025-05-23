@@ -176,7 +176,9 @@ firebase init
 cp .env.example .env.local
 ```
 
-Edit `.env.local` with your Firebase configuration.
+Edit `.env.local` with your Firebase configuration. This file is excluded from git commits to keep your API keys secure.
+
+> ⚠️ **SECURITY WARNING**: Never commit your `.env` file or any other files containing API keys, tokens, or other sensitive credentials to version control. These files are already added to `.gitignore` to prevent accidental commits.
 
 5. Set up service account key
 
@@ -293,6 +295,29 @@ For support with Cravely:
 - Check the [documentation](https://docs.cravely.com)
 - Submit an issue on GitHub
 - Contact support at support@cravely.com
+
+## 🔒 Security
+
+### API Keys and Credentials
+
+- All sensitive credentials are stored in environment variables
+- Never commit `.env` files or service account keys to the repository
+- The `.gitignore` file is configured to exclude the following sensitive files:
+  - `.env` and all `.env.*` files (except `.env.example`)
+  - `*firebase-adminsdk*.json` files
+  - `*serviceAccount*.json` files
+  - `*service-account*.json` files
+  - `.secret.*` files
+  - `credentials*.json` files
+  - Firebase debug logs
+
+### Best Practices
+
+1. Always use environment variables for API keys
+2. Check `.gitignore` before committing changes
+3. When adding new team members, provide them with the `.env.example` file and instruct them to create their own `.env` file
+4. Rotate API keys periodically for enhanced security
+5. Use restricted API keys with limited permissions when possible
 
 ---
 
