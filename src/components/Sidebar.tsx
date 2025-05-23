@@ -1,6 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { usePendingOrdersCount } from '../hooks/usePendingOrdersCount';
 
 interface SidebarProps {
   expanded?: boolean;
@@ -10,9 +14,33 @@ interface SidebarProps {
 export default function Sidebar({ expanded = true, toggleSidebar = () => {} }: SidebarProps) {
   const location = useLocation();
   const { user, logout } = useAuth();
-    const navItems = [
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const { pendingCount } = usePendingOrdersCount(restaurantId);
+  
+  // Fetch restaurant ID when user is available
+  useEffect(() => {
+    const fetchRestaurantId = async () => {
+      if (!user) return;
+      
+      try {
+        const restaurantsRef = collection(db, 'restaurants');
+        const q = query(restaurantsRef);
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const firstRestaurant = querySnapshot.docs[0];
+          setRestaurantId(firstRestaurant.id);
+        }
+      } catch (err) {
+        console.error('Error fetching restaurant ID in sidebar:', err);
+      }
+    };
+    
+    fetchRestaurantId();
+  }, [user]);
+      const navItems = [
     { to: '/dashboard', icon: '🏠', label: 'Dashboard' },
-    { to: '/orders', icon: '📋', label: 'Orders' },
+    { to: '/orders', icon: '📋', label: 'Orders', badge: pendingCount > 0 ? pendingCount : null },
     { to: '/menu', icon: '🍽️', label: 'Menu' },
     { to: '/tables', icon: '🪑', label: 'Tables' },
     { to: '/chat', icon: '💬', label: 'AI Chat' },
@@ -66,8 +94,7 @@ export default function Sidebar({ expanded = true, toggleSidebar = () => {} }: S
       <div className="flex-1 overflow-y-auto py-6">
         <ul className="space-y-2 px-3">
           {navItems.map((item) => (
-            <li key={item.to}>
-              <Link
+            <li key={item.to}>              <Link
                 to={item.to}
                 className={`flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-100 ${
                   location.pathname === item.to 
@@ -76,8 +103,24 @@ export default function Sidebar({ expanded = true, toggleSidebar = () => {} }: S
                 }`}
                 aria-label={item.label}
               >
-                <span className="text-xl">{item.icon}</span>
-                {expanded && <span className="ml-3 font-medium">{item.label}</span>}
+                <span className="text-xl relative">
+                  {item.icon}
+                  {item.badge && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {item.badge > 9 ? '9+' : item.badge}
+                    </span>
+                  )}
+                </span>
+                {expanded && (
+                  <div className="ml-3 font-medium flex items-center">
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-1">
+                        {item.badge > 99 ? '99+' : item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
               </Link>
             </li>
           ))}

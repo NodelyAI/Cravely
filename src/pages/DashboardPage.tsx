@@ -146,38 +146,14 @@ export default function DashboardPage() {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
   };
-
   return (
     <div className="min-h-screen bg-gray-50 font-['Inter',sans-serif]">
-      {/* Mobile Menu */}
-      {isMobile && <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />}
-      
       {/* Main Content */}
       <main className="transition-all duration-300">
-        {/* Header for both mobile and desktop */}
-        <div className="bg-white border-b border-gray-200 px-4 h-16 flex items-center justify-between sticky top-0 z-10">
-          {isMobile ? (
-            <button 
-              onClick={() => setMobileMenuOpen(true)}
-              className="p-2 rounded-lg hover:bg-gray-100"
-              aria-label="Open menu"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          ) : (
-            <div className="w-10"></div> /* Spacer for non-mobile */
-          )}
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <span className="inline-block bg-gradient-to-r from-[#FF7A00] to-[#FF7A00]/80 text-white rounded px-2 py-1">C</span>
-            <span className="font-bold text-lg">Cravely</span>
-          </Link>
-          <div className="flex items-center">
-            <div className="h-9 w-9 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] flex items-center justify-center font-medium">
-              {user?.email?.charAt(0).toUpperCase() || 'U'}
-            </div>
-          </div>
+        {/* Restaurant name banner */}
+        <div className="bg-white px-4 py-2 mb-4 rounded-lg shadow-sm border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-700">Russel Street Kitchen</h2>
+          <p className="text-sm text-gray-500">Restaurant Dashboard</p>
         </div>
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">

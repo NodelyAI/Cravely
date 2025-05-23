@@ -87,14 +87,13 @@ export default function LandingPage() {
               {/* Decorative Elements */}
               <div className="absolute -top-6 -right-6 w-32 h-32 bg-yellow-300 rounded-full opacity-20 blur-xl"></div>
               <div className="absolute -bottom-4 -left-4 w-28 h-28 bg-orange-200 rounded-full opacity-30 blur-xl"></div>
-                {/* Main Image */}              <div className="bg-white p-3 rounded-2xl shadow-xl transform hover:scale-105 rotate-1 hover:rotate-0 transition-all duration-500">
-                <img 
-                  src="/assets/images/dashboard_preview.jpg" 
+                {/* Main Image */}              <div className="bg-white p-3 rounded-2xl shadow-xl transform hover:scale-105 rotate-1 hover:rotate-0 transition-all duration-500">                <img 
+                  src="/assets/images/landing_page_hero.png" 
                   alt="Cravely Dashboard Preview" 
                   onError={(e) => {
                     // Try fallback paths first
-                    if (e.currentTarget.src.includes('/assets/images/dashboard_preview.jpg')) {
-                      e.currentTarget.src = "/dashboard_preview.jpg";
+                    if (e.currentTarget.src.includes('/assets/images/landing_page_hero.png')) {
+                      e.currentTarget.src = "/landing_page_hero.png";
                       return;
                     }
 
@@ -405,12 +404,10 @@ export default function LandingPage() {
                 </motion.div>
             ))}
           </div>
-        </div>
-        
-        {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 right-0 transform rotate-180">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" className="w-full h-auto">
-            <path fill="#ffffff" fillOpacity="1" d="M0,32L60,42.7C120,53,240,75,360,69.3C480,64,600,32,720,32C840,32,960,64,1080,69.3C1200,75,1320,53,1380,42.7L1440,32L1440,120L0,120Z"></path>
+        </div>        {/* Wave separator */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 120" className="w-full h-auto" preserveAspectRatio="none">
+            <path fill="#ffffff" fillOpacity="1" d="M0,0 C240,60 480,120 720,120 C960,120 1200,60 1440,0 L1440,120 L0,120 Z"></path>
           </svg>
         </div>
       </section>{/* CTA Section */}

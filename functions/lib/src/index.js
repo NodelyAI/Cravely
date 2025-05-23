@@ -33,14 +33,29 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateTableQRCodesHttpMock = exports.generateTableQRCodesHttp = exports.generateTableQRCodes = void 0;
+exports.publicMenuQRGenerator = exports.realQRGenerator = void 0;
 const admin = __importStar(require("firebase-admin"));
-const generateTableQRCodes_1 = require("./generateTableQRCodes");
-Object.defineProperty(exports, "generateTableQRCodes", { enumerable: true, get: function () { return generateTableQRCodes_1.generateTableQRCodes; } });
-const generateTableQRCodesHttp_1 = require("./generateTableQRCodesHttp");
-Object.defineProperty(exports, "generateTableQRCodesHttp", { enumerable: true, get: function () { return generateTableQRCodesHttp_1.generateTableQRCodesHttp; } });
-const generateTableQRCodesHttpMock_1 = require("./generateTableQRCodesHttpMock");
-Object.defineProperty(exports, "generateTableQRCodesHttpMock", { enumerable: true, get: function () { return generateTableQRCodesHttpMock_1.generateTableQRCodesHttpMock; } });
+const enhancedQRCodeGenerator_1 = require("./enhancedQRCodeGenerator");
+Object.defineProperty(exports, "realQRGenerator", { enumerable: true, get: function () { return enhancedQRCodeGenerator_1.realQRGenerator; } });
+const publicMenuQRGenerator_1 = require("./publicMenuQRGenerator");
+Object.defineProperty(exports, "publicMenuQRGenerator", { enumerable: true, get: function () { return publicMenuQRGenerator_1.publicMenuQRGenerator; } });
 // Initialize Firebase Admin SDK
-admin.initializeApp();
+try {
+    // Check if admin has already been initialized
+    if (admin.apps.length === 0) {
+        admin.initializeApp({
+            // Use default credentials (will use service account in production,
+            // or environment variables locally)
+            credential: admin.credential.applicationDefault(),
+            storageBucket: 'cravely-f2914.appspot.com' // Explicitly set the storage bucket
+        });
+        console.log('Firebase Admin SDK initialized successfully');
+    }
+    else {
+        console.log('Firebase Admin SDK already initialized');
+    }
+}
+catch (error) {
+    console.error('Error initializing Firebase Admin SDK:', error);
+}
 //# sourceMappingURL=index.js.map

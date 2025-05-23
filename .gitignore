@@ -26,6 +26,18 @@ dist-ssr
 # Firebase/Google Cloud
 scripts/service-account-key.json
 .env
+.env.local
+.env.development
+.env.production
+.env.test
 .firebase/
 firebase-debug.log
 ui-debug.log
+firestore-debug.log
+pubsub-debug.log
+functions/.runtimeconfig.json
+.secret.*
+*firebase-adminsdk*.json
+*serviceAccount*.json
+*service-account*.json
+*credentials*.json

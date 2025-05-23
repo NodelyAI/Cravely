@@ -41,12 +41,18 @@ Cravely transforms restaurant operations with a modern, intuitive platform desig
 - **📊 Live Order Management**: Real-time visualization of active orders with dynamic status tracking
 - **🍽️ Intuitive Menu Management**: User-friendly interface for creating and organizing menu items
 - **📱 QR Code Integration**: Generate and manage custom QR codes for tableside ordering
+  - Create unique QR codes for each table
+  - Download and print QR codes for placement on tables
+  - Monitor order activity by table
 - **🪑 Visual Table Management**: Interactive restaurant layout with real-time status indicators
 - **💳 Flexible Payment Solutions**: Multiple payment gateway integrations with split bill capabilities
 - **🤖 AI-Powered Business Intelligence**: Performance analytics with automated optimization suggestions
 - **👥 Staff Management Tools**: Employee accounts with permission settings and performance tracking
 - **📈 Comprehensive Reporting**: Customizable reports with visual data representations
 - **🔔 Smart Notification System**: Real-time alerts across multiple channels
+  - Browser notifications for new orders
+  - Sound alerts for immediate attention
+  - Visual indicators in sidebar and orders page
 
 ### For Customers
 
@@ -109,10 +115,12 @@ cravely/
     │   └── features/     # Feature-specific components
     ├── config/           # App configuration
     ├── contexts/         # React contexts
-    ├── features/         # Feature modules
-    │   ├── auth/         # Authentication
+    ├── features/         # Feature modules    │   ├── auth/         # Authentication
     │   ├── dashboard/    # Admin dashboard
     │   ├── menu/         # Menu management
+    │   ├── tables/       # Table & QR code management
+    │   ├── orders/       # Order processing system
+    │   └── customer/     # Customer-facing ordering experience
     │   ├── orders/       # Order processing
     │   └── tables/       # Table management
     ├── hooks/            # Custom React hooks

@@ -50,9 +50,8 @@ export default function Navbar() {
     <nav className={`${scrolled ? 'shadow-md' : ''} transition-all duration-300 sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-primary/10`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="relative">
-              {/* Using the navbar logo from public folder */}
+          <Link to="/dashboard" className="flex items-center gap-3 min-w-0">
+            <div className="relative flex items-center">
               <img 
                 src="/navbar_128.png" 
                 alt="Cravely Logo" 
@@ -68,6 +67,8 @@ export default function Navbar() {
                 }}
               />
             </div>
+            {/* Restaurant name next to logo */}
+            <span className="truncate font-bold text-lg text-gray-800 hidden sm:inline-block">Russel Street Kitchen</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -140,53 +141,86 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Mobile menu */}
+      </div>      {/* Mobile menu - using improved design from the third image */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden overflow-hidden border-t border-primary/10"
-          >
-            <div className="px-4 pt-2 pb-3 space-y-1 bg-white/90 backdrop-blur-sm">
-              {navLinks.map(link => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className={`block px-3 py-2 rounded-lg text-base font-medium ${
-                    location.pathname === link.to 
-                      ? 'bg-primary/10 text-primary' 
-                      : 'text-text-primary hover:bg-primary/5'
-                  }`}
-                >
-                  {link.label}
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 md:hidden"
+              onClick={() => setMobileOpen(false)}
+            />
+            
+            {/* Side panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.3 }}
+              className="fixed top-0 left-0 w-[280px] h-full bg-white z-40 shadow-lg md:hidden flex flex-col"
+            >
+              <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+                <Link to="/dashboard" className="flex items-center gap-2 min-w-0" onClick={() => setMobileOpen(false)}>
+                  <img src="/navbar_128.png" alt="Cravely Logo" className="h-10 w-auto" />
+                  <span className="font-bold text-base truncate">Russel Street Kitchen</span>
                 </Link>
-              ))}
-              <div className="pt-4 border-t border-gray-200 mt-4">
-                <div className="flex items-center px-3 py-2">
-                  <div className="flex items-center justify-center rounded-full w-10 h-10 bg-accent/10 text-accent">
-                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-gray-100">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center">
+                  <div className="h-10 w-10 rounded-full bg-[#FF7A00]/10 text-[#FF7A00] flex items-center justify-center font-medium">
+                    {user?.email?.charAt(0).toUpperCase() || 'A'}
                   </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-medium text-text-primary">Signed in as</p>
-                    <p className="text-sm text-text-muted truncate">{user?.email}</p>
+                  <div className="ml-3 overflow-hidden">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {user?.email?.split('@')[0] || 'admin'}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user?.email || 'admin@cravely.ca'}
+                    </p>
                   </div>
                 </div>
-                <Link to="/profile" className="block px-3 py-2 rounded-lg text-base font-medium text-text-primary hover:bg-accent/5 mt-2">
-                  Profile Settings
-                </Link>
-                <button 
+              </div>
+
+              <div className="py-4">
+                <ul className="space-y-1 px-3">
+                  {navLinks.map((link) => (
+                    <li key={link.to}>
+                      <Link
+                        to={link.to}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center rounded-lg p-3 transition-colors duration-200 hover:bg-gray-100 ${
+                          location.pathname === link.to 
+                            ? 'bg-[#FF7A00]/10 text-[#FF7A00]' 
+                            : 'text-gray-700'
+                        }`}
+                      >
+                        <span className="ml-3 font-medium">{link.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+                <button
                   onClick={handleLogout}
-                  className="block w-full text-left px-3 py-2 rounded-lg text-base font-medium text-error hover:bg-error/5 mt-2"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
                   Sign Out
                 </button>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>

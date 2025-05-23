@@ -1,78 +1,168 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { 
+  collection, query, where, orderBy, onSnapshot, doc, updateDoc, 
+  getDocs, serverTimestamp, Timestamp 
+} from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { useAuth } from '../hooks/useAuth';
+import OrderNotifications from '../components/features/OrderNotifications';
+import { registerServiceWorker, requestNotificationPermission } from '../services/notifications';
+
+type OrderItem = {
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  options: Record<string, string>;
+  specialInstructions?: string;
+};
 
 type Order = {
-  id: number;
-  table: number;
-  items: string[];
-  status: 'Pending' | 'Preparing' | 'Ready' | 'Served' | 'Cancelled';
-  timestamp: string;
+  id: string;
+  restaurantId: string;
+  tableId: string;
+  tableName?: string;
+  items: OrderItem[];
+  status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
+  createdAt: Timestamp;
   total: number;
   customerName?: string;
   specialRequests?: string;
 };
 
 export default function OrdersPage() {
-  // Example orders with more detailed information
-  const [orders, setOrders] = useState<Order[]>([
-    { 
-      id: 101, 
-      table: 5, 
-      items: ['Margherita Pizza', 'Caesar Salad', 'Soda'], 
-      status: 'Preparing', 
-      timestamp: '2025-05-12T15:30:00',
-      total: 28.97,
-      specialRequests: 'Extra cheese on pizza'
-    },
-    { 
-      id: 102, 
-      table: 2, 
-      items: ['Spaghetti Carbonara', 'Garlic Bread', 'Red Wine'], 
-      status: 'Served', 
-      timestamp: '2025-05-12T15:15:00',
-      total: 32.50,
-      customerName: 'Jane Smith'
-    },
-    { 
-      id: 103, 
-      table: 7, 
-      items: ['Burger', 'Fries', 'Chocolate Milkshake'], 
-      status: 'Pending', 
-      timestamp: '2025-05-12T15:45:00',
-      total: 24.99
-    },
-    { 
-      id: 104, 
-      table: 3, 
-      items: ['Greek Salad', 'Lemonade'], 
-      status: 'Ready', 
-      timestamp: '2025-05-12T15:40:00',
-      total: 15.50,
-      customerName: 'Michael Johnson',
-      specialRequests: 'No onions in salad'
-    },
-    { 
-      id: 105, 
-      table: 10, 
-      items: ['Pepperoni Pizza', 'Chicken Wings', 'Beer'], 
-      status: 'Pending', 
-      timestamp: '2025-05-12T15:50:00',
-      total: 39.95
-    },
-  ]);
-
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [tables, setTables] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [restaurantId, setRestaurantId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { user } = useAuth();
+
+  // Request notification permission and register service worker
+  useEffect(() => {
+    const setupNotifications = async () => {
+      await registerServiceWorker();
+      await requestNotificationPermission();
+    };
+    
+    setupNotifications();
+  }, []);
+
+  // Fetch restaurant ID and listen for orders
+  useEffect(() => {
+    async function fetchRestaurantId() {
+      try {
+        if (!user) return null;
+        
+        // In a real app, this would come from authenticated user claims
+        // For demo purposes, we'll fetch the first restaurant the user has access to
+        const restaurantsRef = collection(db, 'restaurants');
+        const q = query(restaurantsRef);
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+          const firstRestaurant = querySnapshot.docs[0];
+          setRestaurantId(firstRestaurant.id);
+          return firstRestaurant.id;
+        }
+        
+        setError('No restaurants found for this user');
+        setLoading(false);
+        return null;
+      } catch (err) {
+        console.error('Error fetching restaurant ID:', err);
+        setError('Failed to load restaurant information');
+        setLoading(false);
+        return null;
+      }
+    }
+
+    async function fetchTables(restId: string) {
+      try {
+        const tablesRef = collection(db, 'tables');
+        const q = query(tablesRef, where('restaurantId', '==', restId));
+        const querySnapshot = await getDocs(q);
+        
+        const tableData: Record<string, string> = {};
+        querySnapshot.forEach((doc) => {
+          tableData[doc.id] = doc.data().label;
+        });
+        
+        setTables(tableData);
+      } catch (err) {
+        console.error('Error fetching tables:', err);
+      }
+    }
+    
+    async function setupOrdersListener(restId: string) {
+      // Set up real-time listener for orders
+      const ordersRef = collection(db, 'orders');
+      const q = query(
+        ordersRef,
+        where('restaurantId', '==', restId),
+        orderBy('createdAt', 'desc')
+      );
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const orderData: Order[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          orderData.push({
+            id: doc.id,
+            restaurantId: data.restaurantId,
+            tableId: data.tableId,
+            tableName: tables[data.tableId] || `Table ${data.tableId.substring(0, 4)}`,
+            items: data.items || [],
+            status: data.status,
+            createdAt: data.createdAt,
+            total: data.total,
+            specialRequests: data.specialRequests
+          });
+        });
+        
+        setOrders(orderData);
+        setLoading(false);
+      }, (error) => {
+        console.error('Error listening to orders:', error);
+        setError('Failed to load orders');
+        setLoading(false);
+      });
+      
+      return unsubscribe;
+    }
+    
+    async function initData() {
+      const restId = await fetchRestaurantId();
+      if (restId) {
+        await fetchTables(restId);
+        return setupOrdersListener(restId);
+      }
+      return () => {};
+    }
+    
+    const unsubscribe = initData();
+    
+    // Cleanup listener on unmount
+    return () => {
+      unsubscribe.then(unsub => unsub());
+    };
+  }, [user]);
 
   // Format the timestamp into a more readable format
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatTime = (timestamp: Timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate();
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   // Format date in a user-friendly way
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatDate = (timestamp: Timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp.toDate();
     return date.toLocaleDateString([], { 
       weekday: 'short', 
       month: 'short', 
@@ -81,31 +171,40 @@ export default function OrdersPage() {
   };
 
   // Handle order status change
-  const handleStatusChange = (orderId: number, newStatus: Order['status']) => {
-    setOrders(orders.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+  const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await updateDoc(orderRef, {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+      
+      // The UI will update automatically via the Firestore listener
+    } catch (err) {
+      console.error('Error updating order status:', err);
+      setError('Failed to update order status');
+    }
   };
 
   // Filter orders based on status and search query
   const filteredOrders = orders.filter(order => 
-    (filterStatus === 'All' || order.status === filterStatus) &&
+    (filterStatus === 'All' || order.status === filterStatus.toLowerCase()) &&
     (searchQuery === '' || 
      order.id.toString().includes(searchQuery) || 
-     order.table.toString().includes(searchQuery) ||
-     order.items.some(item => item.toLowerCase().includes(searchQuery.toLowerCase())) ||
-     (order.customerName && order.customerName.toLowerCase().includes(searchQuery.toLowerCase())))
+     order.tableId.toString().includes(searchQuery) ||
+     (order.tableName && order.tableName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+     order.items.some(item => item.name.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
-  // Sort orders by timestamp (newest first) and then by status priority
+  // Sort orders by status and timestamp
   const sortedOrders = [...filteredOrders].sort((a, b) => {
-    // Priority order: Pending, Preparing, Ready, Served, Cancelled
+    // Priority order: pending, preparing, ready, served, cancelled
     const statusPriority: Record<string, number> = {
-      'Pending': 0,
-      'Preparing': 1,
-      'Ready': 2,
-      'Served': 3,
-      'Cancelled': 4
+      'pending': 0,
+      'preparing': 1,
+      'ready': 2,
+      'served': 3,
+      'cancelled': 4
     };
     
     // First sort by status priority
@@ -113,7 +212,7 @@ export default function OrdersPage() {
     if (statusDiff !== 0) return statusDiff;
     
     // Then sort by timestamp (newest first)
-    return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    return b.createdAt?.seconds - a.createdAt?.seconds;
   });
 
   // Animation variants
@@ -132,8 +231,32 @@ export default function OrdersPage() {
     show: { opacity: 1, y: 0 }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="w-16 h-16 border-4 border-t-primary rounded-full animate-spin"></div>
+        <p className="mt-4 text-lg">Loading orders...</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col gap-6">
+      {/* Order notifications */}
+      <OrderNotifications restaurantId={restaurantId} />
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">
           Order Tracking
@@ -142,6 +265,7 @@ export default function OrdersPage() {
         <div className="flex gap-2">
           <button 
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            onClick={() => alert('This would open a POS interface for creating orders')}
           >
             New Order
           </button>
@@ -191,19 +315,19 @@ export default function OrdersPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div className="bg-orange-50 border border-orange-100 rounded-lg p-4">
           <p className="text-orange-800 text-sm font-medium">Pending</p>
-          <p className="text-2xl font-bold text-orange-600">{orders.filter(o => o.status === 'Pending').length}</p>
+          <p className="text-2xl font-bold text-orange-600">{orders.filter(o => o.status === 'pending').length}</p>
         </div>
         <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4">
           <p className="text-yellow-800 text-sm font-medium">Preparing</p>
-          <p className="text-2xl font-bold text-yellow-600">{orders.filter(o => o.status === 'Preparing').length}</p>
+          <p className="text-2xl font-bold text-yellow-600">{orders.filter(o => o.status === 'preparing').length}</p>
         </div>
         <div className="bg-green-50 border border-green-100 rounded-lg p-4">
           <p className="text-green-800 text-sm font-medium">Ready</p>
-          <p className="text-2xl font-bold text-green-600">{orders.filter(o => o.status === 'Ready').length}</p>
+          <p className="text-2xl font-bold text-green-600">{orders.filter(o => o.status === 'ready').length}</p>
         </div>
         <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
           <p className="text-blue-800 text-sm font-medium">Served</p>
-          <p className="text-2xl font-bold text-blue-600">{orders.filter(o => o.status === 'Served').length}</p>
+          <p className="text-2xl font-bold text-blue-600">{orders.filter(o => o.status === 'served').length}</p>
         </div>
       </div>
       
@@ -226,30 +350,25 @@ export default function OrdersPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-gray-900">Order #{order.id}</h3>
-                      <span className="text-xs text-gray-500">{formatDate(order.timestamp)}</span>
+                      <h3 className="font-bold text-gray-900">Order #{order.id.substring(0, 8)}</h3>
+                      <span className="text-xs text-gray-500">{formatDate(order.createdAt)}</span>
                     </div>
                     <p className="text-sm text-gray-600">
-                      Table {order.table} • {formatTime(order.timestamp)}
+                      {order.tableName || `Table ${order.tableId.substring(0, 4)}`} • {formatTime(order.createdAt)}
                     </p>
-                    {order.customerName && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Customer: {order.customerName}
-                      </p>
-                    )}
                   </div>
                   <div>
                     <span 
                       className={`
                         inline-block px-2 py-1 rounded-full text-xs font-semibold
-                        ${order.status === 'Pending' ? 'bg-orange-100 text-orange-800' : 
-                          order.status === 'Preparing' ? 'bg-yellow-100 text-yellow-800' : 
-                          order.status === 'Ready' ? 'bg-green-100 text-green-800' : 
-                          order.status === 'Served' ? 'bg-blue-100 text-blue-800' : 
+                        ${order.status === 'pending' ? 'bg-orange-100 text-orange-800' : 
+                          order.status === 'preparing' ? 'bg-yellow-100 text-yellow-800' : 
+                          order.status === 'ready' ? 'bg-green-100 text-green-800' : 
+                          order.status === 'served' ? 'bg-blue-100 text-blue-800' : 
                           'bg-gray-100 text-gray-800'}
                       `}
                     >
-                      {order.status}
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -257,16 +376,17 @@ export default function OrdersPage() {
                   <h4 className="text-xs font-medium text-gray-500 mb-1">ITEMS</h4>
                   <ul className="space-y-1">
                     {order.items.map((item, idx) => (
-                      <li key={idx} className="text-sm">{item}</li>
+                      <li key={idx} className="text-sm">
+                        {item.quantity}x {item.name} - ${item.price.toFixed(2)}
+                        {item.specialInstructions && (
+                          <span className="text-xs text-gray-500 italic ml-2">
+                            ({item.specialInstructions})
+                          </span>
+                        )}
+                      </li>
                     ))}
                   </ul>
                 </div>
-                {order.specialRequests && (
-                  <div className="mb-3">
-                    <h4 className="text-xs font-medium text-gray-500 mb-1">SPECIAL REQUESTS</h4>
-                    <p className="text-sm italic">{order.specialRequests}</p>
-                  </div>
-                )}
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="text-xs font-medium text-gray-500">TOTAL</h4>
@@ -280,7 +400,7 @@ export default function OrdersPage() {
                 <div>
                   <h4 className="text-xs font-medium text-gray-500 mb-2">UPDATE STATUS</h4>
                   <div className="grid grid-cols-1 gap-2">
-                    {['Pending', 'Preparing', 'Ready', 'Served', 'Cancelled'].map((status) => (
+                    {['pending', 'preparing', 'ready', 'served', 'cancelled'].map((status) => (
                       <button
                         key={status}
                         onClick={() => handleStatusChange(order.id, status as Order['status'])}
@@ -289,25 +409,25 @@ export default function OrdersPage() {
                           px-3 py-2 rounded-lg text-xs font-medium transition-colors
                           ${order.status === status 
                             ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                            : status === 'Pending' ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' : 
-                              status === 'Preparing' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 
-                              status === 'Ready' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
-                              status === 'Served' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : 
+                            : status === 'pending' ? 'bg-orange-100 text-orange-800 hover:bg-orange-200' : 
+                              status === 'preparing' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 
+                              status === 'ready' ? 'bg-green-100 text-green-800 hover:bg-green-200' : 
+                              status === 'served' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : 
                               'bg-red-100 text-red-800 hover:bg-red-200'
                           }
                         `}
                       >
-                        {status}
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
                       </button>
                     ))}
                   </div>
                 </div>
                 <div className="mt-2">
-                  <button className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-medium px-3 py-2 rounded-lg transition-colors">
-                    View Details
-                  </button>
-                  <button className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors">
-                    Print Receipt
+                  <button 
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                    onClick={() => window.open(`/r/${order.restaurantId}/t/${order.tableId}`, '_blank')}
+                  >
+                    View Table Menu
                   </button>
                 </div>
               </div>

@@ -4,7 +4,8 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {      colors: {
+    extend: {
+      colors: {
         primary: {
           DEFAULT: '#FF7A00', // Brand Orange
           hover: '#E86D00', // Darker Orange for hover states
@@ -26,6 +27,9 @@ module.exports = {
         success: {
           DEFAULT: '#10B981', // Emerald Green
         },
+      },
+      animation: {
+        'bounce-once': 'bounce 1s ease-in-out 1',
       },
     },
   },

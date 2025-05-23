@@ -1,4 +1,5 @@
-{  "compilerOptions": {
+{
+  "compilerOptions": {
     "module": "commonjs",
     "noImplicitReturns": true,
     "noUnusedLocals": false,
@@ -8,11 +9,12 @@
     "target": "es2017",
     "esModuleInterop": true,
     "types": ["jest", "node"],
-    "typeRoots": ["./node_modules/@types", "./tests"]
+    "typeRoots": ["./node_modules/@types", "./tests"],
+    "rootDir": "./"
   },
-  "compileOnSave": true,  "include": [
+  "compileOnSave": true,
+  "include": [
     "src",
     "tests"
-  ],
-  "types": ["jest", "node"]
+  ]
 }
